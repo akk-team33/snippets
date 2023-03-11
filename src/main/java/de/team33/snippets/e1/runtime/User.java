@@ -4,6 +4,7 @@ import de.team33.patterns.lazy.e1.Lazy;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -11,15 +12,17 @@ import java.util.stream.Stream;
 /**
  * Provides user related information from the runtime environment.
  */
-public class User {
+public final class User {
 
-    private static final String DOT = ".";
     private static final String HOME_KEY = "user.home";
     private static final Lazy<Path> HOME = new Lazy<>(() -> Optional.ofNullable(System.getProperty(HOME_KEY))
                                                                     .map(Paths::get)
                                                                     .orElseThrow(User::missingHomeException)
                                                                     .toAbsolutePath()
                                                                     .normalize());
+
+    private User() {
+    }
 
     /**
      * Returns an absolute, normalized {@link Path} to the user's home directory.
@@ -44,20 +47,21 @@ public class User {
      * <p>
      * It is not checked whether the resulting path actually refers a regular file or even exists.
      */
-    public static Path configFile(final Class<?> c, final String... extensions) {
-        final Package p = c.getPackage();
-        final String name = c.getCanonicalName()
-                             .substring(p.getName().length() + 1) + normal(extensions);
-        return configPath(p).resolve(name);
+    public static Path configFile(final Class<?> refClass, final String... extensions) {
+        final Package p = refClass.getPackage();
+        final String name = refClass.getCanonicalName()
+                                    .substring(p.getName().length() + 1);
+        return configPath(p).resolve(join(name, extensions));
     }
 
-    private static String normal(final String... extensions) {
-        final String result = Stream.of(extensions)
-                                    .map(entry -> entry.split("[\\s.]+"))
-                                    .flatMap(Stream::of)
-                                    .filter(entry -> !"".equals(entry))
-                                    .collect(Collectors.joining("."));
-        return "".equals(result) ? result : ("." + result);
+    private static String join(final String name, final String[] extensions) {
+        return Stream.concat(Stream.of(name),
+                             Stream.of(extensions)
+                                   .filter(Objects::nonNull)
+                                   .map(entry -> entry.split("[\\s.]+"))
+                                   .flatMap(Stream::of)
+                                   .filter(s -> !s.isEmpty()))
+                     .collect(Collectors.joining("."));
     }
 
     private static IllegalStateException missingHomeException() {

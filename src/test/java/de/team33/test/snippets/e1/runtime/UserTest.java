@@ -17,8 +17,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class UserTest {
 
-    private static final String CONFIG_PATH_SHOULD_EXIST = //
-            "after calling <User.configPath()> the resulting path <%s> should exist as a directory";
     private static final Class<?> CLASS = UserTest.class;
 
     @BeforeAll
@@ -81,13 +79,15 @@ class UserTest {
         assertEquals(expected, result);
     }
 
+    @SuppressWarnings("HardcodedLineSeparator")
     enum Extension {
         EXT0(""),
         EXT1("", ""),
         EXT2("", "", "  ", "\t", "\n"),
         EXT3(".json", ".json"),
         EXT4(".cnf", "cnf"),
-        EXT5(".abc.def.g.h.i.j.k.l.*", "abc", " ..def", "g h i", " j.k.l ", " * ");
+        EXT5(".abc.def.g.h.i.j.k.l.*", "abc", " ..def", "g h i", " j.k.l ", " * "),
+        EXT6("", null, "");
 
         private final String expected;
         private final String[] input;
